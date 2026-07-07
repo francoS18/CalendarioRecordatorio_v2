@@ -1,0 +1,118 @@
+\documentclass[12pt]{report}
+\def\TITULO{Calendario de Recordatorios}
+\def\subtitulo{Laboratorio Práctico N\textsuperscript{o}2}
+\def\autora{Franco Garrido}
+\def\correoa{francosebastian.garrido@alumnos.ulagos.cl}
+
+\def\asignatura{Taller de Ingeniería Informática}
+\def\campus{Campus Osorno}
+\def\carrera{Ingeniería Civil en Informática}
+\input{Macros}
+
+\lstset{language=PHP}
+
+\begin{document}
+
+\maketitle
+
+\cleardoublepage
+\pagenumbering{roman}
+\setcounter{page}{1}
+
+\tableofcontents
+\listoffigures
+\renewcommand{\listtablename}{Índice de tablas}\listoftables
+\renewcommand{\lstlistlistingname}{Índice de códigos}
+\lstlistoflistings
+
+\cleardoublepage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+\chapter{Introducción}
+
+El presente informe describe el desarrollo y despliegue de una aplicación web llamada \textbf{Calendario de Recordatorios}. El proyecto consiste en un sistema simple para registrar recordatorios con título, descripción, fecha y hora, permitiendo realizar operaciones básicas de creación, lectura, modificación y eliminación de datos.
+
+La aplicación fue implementada usando \textbf{PHP} para la lógica del sitio, \textbf{CSS} para el diseño visual, \textbf{MySQL} para la persistencia de información y \textbf{Docker Compose} para levantar los servicios necesarios de forma ordenada. El objetivo principal es demostrar el funcionamiento de una aplicación web dinámica conectada a una base de datos mediante contenedores.
+
+\section{Estructura del proyecto}
+
+El proyecto se organiza separando la aplicación, la base de datos, la configuración de Docker y la documentación. Esta estructura permite mantener el código ordenado y facilita su ejecución en distintos entornos.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{images/other/estructura_proyecto.png}
+    \caption{Estructura general del proyecto Calendario de Recordatorios}
+    \label{fig:estructura}
+\end{figure}
+
+\chapter{Configuración de Docker}
+
+\section{Archivo \texttt{docker-compose.yml}}
+
+El archivo \texttt{docker-compose.yml} define dos servicios principales: \texttt{app} y \texttt{db}. El servicio \texttt{app} construye la aplicación desde la carpeta \texttt{app}, expone el puerto \texttt{8080} y utiliza variables de entorno para conectarse a la base de datos. El servicio \texttt{db} utiliza la imagen \texttt{mysql:8.4}, crea la base de datos inicial y mantiene la información mediante un volumen llamado \texttt{calendario\_data}.
+
+\begin{itemize}
+    \item \textbf{Servicio \texttt{app}:} contiene PHP y Apache para ejecutar \texttt{index.php}.
+    \item \textbf{Servicio \texttt{db}:} contiene MySQL y almacena los datos de los recordatorios.
+    \item \textbf{Volumen:} permite conservar los datos aunque los contenedores se detengan.
+    \item \textbf{Red interna:} permite que la aplicación se conecte a MySQL usando el nombre del servicio \texttt{db}.
+\end{itemize}
+
+\section{Archivo \texttt{Dockerfile}}
+
+El \texttt{Dockerfile} se encuentra dentro de la carpeta \texttt{app}. Utiliza como base la imagen \texttt{php:8.3-apache}, instala las extensiones \texttt{pdo} y \texttt{pdo\_mysql}, copia los archivos de la aplicación al directorio de Apache y expone el puerto \texttt{80} dentro del contenedor.
+
+\chapter{Desarrollo y pruebas}
+
+\section{Construcción del proyecto}
+
+Construimos la imagen, este proceso prepara el contenedor de la aplicación web, instalando las extensiones necesarias para que PHP pueda conectarse con MySQL.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{images/pruebas/docker_compose_build.png}
+    \caption{Construcción de la imagen de la aplicación}
+    \label{fig:build}
+\end{figure}
+
+\section{Ejecución de los contenedores}
+
+Luego de construir la imagen, se levantan los contenedores en segundo plano:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{images/pruebas/docker_compose_up.png}
+    \caption{Ejecución de Docker Compose}
+    \label{fig:up}
+\end{figure}
+
+Comprobamos que ambos servicios están activos:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{images/pruebas/docker_compose_ps.png}
+    \caption{Verificación de contenedores activos}
+    \label{fig:ps}
+\end{figure}
+
+En esta prueba se verifica que la página cargue correctamente, que muestre el listado de recordatorios y que permita crear, modificar y borrar registros.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{images/pruebas/calendario_app.png}
+    \caption{Listado de recordatorios en la aplicación web}
+    \label{fig:listado}
+\end{figure}
+
+\chapter{Conclusión}
+
+En conclusión, el proyecto \textbf{Calendario de Recordatorios} cumple con el desarrollo de una aplicación web dinámica conectada a una base de datos. La solución permite registrar, visualizar, modificar y eliminar recordatorios de forma sencilla mediante una interfaz web.
+
+El uso de Docker permitió separar la aplicación PHP y la base de datos MySQL en contenedores distintos, facilitando la instalación, ejecución y comprobación del sistema. Además, Docker Compose simplificó el levantamiento del entorno completo, ya que ambos servicios se configuran desde un solo archivo.
+
+Finalmente, el proyecto permitió aplicar de manera práctica conceptos relacionados con desarrollo web, bases de datos, persistencia de datos, redes internas de contenedores y despliegue básico de aplicaciones mediante Docker.
+
+\input{Anexos}
+
+\end{document}
