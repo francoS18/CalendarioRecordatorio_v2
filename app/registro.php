@@ -9,30 +9,38 @@ $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $usuario = preg_replace('/\s+/', '', trim($_POST['usuario'] ?? ''));
+    $correo = strtolower(trim($_POST['correo'] ?? ''));
     $contrasena = (string) ($_POST['contrasena'] ?? '');
     $contrasenaConfirm = (string) ($_POST['contrasena_confirm'] ?? '');
 
-    if ($usuario === '' || $contrasena === '' || $contrasenaConfirm === '') {
+    if ($usuario === '' || $correo === '' || $contrasena === '' || $contrasenaConfirm === '') {
         $error = 'Completa todos los campos.';
     } elseif (!preg_match('/^[A-Za-z0-9_]{3,50}$/', $usuario)) {
         $error = 'El usuario debe tener entre 3 y 50 caracteres y solo puede usar letras, números o guion bajo.';
+    } elseif (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
+        $error = 'Ingresa un correo válido.';
     } elseif (strlen($contrasena) < 6) {
         $error = 'La contraseña debe tener al menos 6 caracteres.';
     } elseif ($contrasena !== $contrasenaConfirm) {
         $error = 'Las contraseñas no coinciden.';
     } else {
         try {
-            $stmt = $pdo->prepare('SELECT COUNT(*) FROM usuarios WHERE usuario = ?');
-            $stmt->execute([$usuario]);
+            $stmt = $pdo->prepare('SELECT usuario, correo FROM usuarios WHERE usuario = ? OR correo = ? LIMIT 1');
+            $stmt->execute([$usuario, $correo]);
+            $usuarioExistente = $stmt->fetch();
 
-            if ((int) $stmt->fetchColumn() > 0) {
-                $error = 'Ese usuario ya está registrado.';
+            if ($usuarioExistente) {
+                if ($usuarioExistente['usuario'] === $usuario) {
+                    $error = 'Ese usuario ya está registrado.';
+                } else {
+                    $error = 'Ese correo ya está registrado.';
+                }
             } else {
                 $hash = password_hash($contrasena, PASSWORD_DEFAULT);
-                $stmt = $pdo->prepare('INSERT INTO usuarios (usuario, contrasena) VALUES (?, ?)');
-                $stmt->execute([$usuario, $hash]);
+                $stmt = $pdo->prepare('INSERT INTO usuarios (usuario, correo, contrasena) VALUES (?, ?, ?)');
+                $stmt->execute([$usuario, $correo, $hash]);
                 $nuevoUsuarioId = (int) $pdo->lastInsertId();
-                registrar_bitacora($pdo, 'Creación de usuario', 'Tabla: usuarios | ID usuario: ' . $nuevoUsuarioId, $usuario);
+                registrar_bitacora($pdo, 'Creación de usuario', 'Tabla: usuarios | ID usuario: ' . $nuevoUsuarioId . ' | Correo: ' . $correo, $usuario);
                 flash_message('Usuario registrado correctamente. Ahora inicia sesión.');
                 redirect_to('login.php');
             }
@@ -73,6 +81,9 @@ $flash = get_flash_message();
         <form method="post" class="reminder-form">
             <label for="usuario">Usuario</label>
             <input id="usuario" name="usuario" required minlength="3" maxlength="50" autocomplete="username" value="<?= e($_POST['usuario'] ?? '') ?>">
+
+            <label for="correo">Correo</label>
+            <input id="correo" name="correo" type="email" required maxlength="120" autocomplete="email" value="<?= e($_POST['correo'] ?? '') ?>">
 
             <label for="contrasena">Contraseña</label>
             <input id="contrasena" name="contrasena" type="password" required minlength="6" autocomplete="new-password">

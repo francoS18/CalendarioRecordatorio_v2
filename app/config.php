@@ -44,17 +44,20 @@ function current_user_name(): string {
     return (string) ($_SESSION['usuario_nombre'] ?? 'Invitado');
 }
 
-function obtener_ip_host_cliente() {
-    if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-        return explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0];
+function obtener_ip_host_cliente(): string {
+    $ip = $_SERVER['REMOTE_ADDR'] ?? 'desconocida';
+    $host = 'desconocido';
+
+    if ($ip !== 'desconocida') {
+        $hostDetectado = @gethostbyaddr($ip);
+        if ($hostDetectado !== false && $hostDetectado !== '') {
+            $host = $hostDetectado;
+        }
     }
 
-    if (!empty($_SERVER['REMOTE_ADDR'])) {
-        return $_SERVER['REMOTE_ADDR'];
-    }
-
-    return 'No disponible';
+    return $ip . ' / ' . $host;
 }
+
 function registrar_bitacora(PDO $pdo, string $tipo, string $detalle, ?string $nombreUsuario = null): void {
     $nombreUsuario = $nombreUsuario ?: current_user_name();
     $fechaHora = date('d/m/Y, H:i:s');
@@ -85,7 +88,8 @@ function ensure_schema(PDO $pdo): void {
     $pdo->exec("CREATE TABLE IF NOT EXISTS usuarios (
         id INT AUTO_INCREMENT PRIMARY KEY,
         usuario VARCHAR(50) NOT NULL UNIQUE,
-        `contrasena` VARCHAR(255) NOT NULL,
+        correo VARCHAR(120) NOT NULL UNIQUE,
+        contrasena VARCHAR(255) NOT NULL,
         creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
@@ -138,5 +142,3 @@ $estadoLabels = [
     'completada' => 'Completada',
     'cancelada' => 'Cancelada',
 ];
-
-

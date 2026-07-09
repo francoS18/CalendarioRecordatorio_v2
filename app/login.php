@@ -9,25 +9,29 @@ $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $usuario = preg_replace('/\s+/', '', trim($_POST['usuario'] ?? ''));
+    $correo = strtolower(trim($_POST['correo'] ?? ''));
     $contrasena = (string) ($_POST['contrasena'] ?? '');
 
-    if ($usuario === '' || $contrasena === '') {
-        $error = 'Completa usuario y contraseña.';
+    if ($usuario === '' || $correo === '' || $contrasena === '') {
+        $error = 'Completa usuario, correo y contraseña.';
     } elseif (!preg_match('/^[A-Za-z0-9_]{3,50}$/', $usuario)) {
         $error = 'El usuario debe tener entre 3 y 50 caracteres y solo puede usar letras, números o guion bajo.';
+    } elseif (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
+        $error = 'Ingresa un correo válido.';
     } else {
         try {
-            $stmt = $pdo->prepare('SELECT id, usuario, contrasena FROM usuarios WHERE usuario = ? LIMIT 1');
-            $stmt->execute([$usuario]);
+            $stmt = $pdo->prepare('SELECT id, usuario, correo, contrasena FROM usuarios WHERE usuario = ? AND correo = ? LIMIT 1');
+            $stmt->execute([$usuario, $correo]);
             $usuarioEncontrado = $stmt->fetch();
 
             if (!$usuarioEncontrado || !password_verify($contrasena, $usuarioEncontrado['contrasena'])) {
-                $error = 'Usuario o contraseña incorrectos.';
+                $error = 'Usuario, correo o contraseña incorrectos.';
             } else {
                 session_regenerate_id(true);
                 $_SESSION['usuario_id'] = (int) $usuarioEncontrado['id'];
                 $_SESSION['usuario_nombre'] = $usuarioEncontrado['usuario'];
-                registrar_bitacora($pdo, 'Inicio de sesión', 'Tabla: usuarios | ID usuario: ' . (int) $usuarioEncontrado['id'], $usuarioEncontrado['usuario']);
+                $_SESSION['usuario_correo'] = $usuarioEncontrado['correo'];
+                registrar_bitacora($pdo, 'Inicio de sesión', 'Tabla: usuarios | ID usuario: ' . (int) $usuarioEncontrado['id'] . ' | Correo: ' . $usuarioEncontrado['correo'], $usuarioEncontrado['usuario']);
                 flash_message('Inicio de sesión correcto');
                 redirect_to('index.php?action=list');
             }
@@ -68,6 +72,9 @@ $flash = get_flash_message();
         <form method="post" class="reminder-form">
             <label for="usuario">Usuario</label>
             <input id="usuario" name="usuario" required minlength="3" maxlength="50" autocomplete="username" value="<?= e($_POST['usuario'] ?? '') ?>">
+
+            <label for="correo">Correo</label>
+            <input id="correo" name="correo" type="email" required maxlength="120" autocomplete="email" value="<?= e($_POST['correo'] ?? '') ?>">
 
             <label for="contrasena">Contraseña</label>
             <input id="contrasena" name="contrasena" type="password" required minlength="6" autocomplete="current-password">
