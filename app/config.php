@@ -44,20 +44,17 @@ function current_user_name(): string {
     return (string) ($_SESSION['usuario_nombre'] ?? 'Invitado');
 }
 
-function obtener_ip_host_cliente(): string {
-    $ip = $_SERVER['REMOTE_ADDR'] ?? 'desconocida';
-    $host = 'desconocido';
-
-    if ($ip !== 'desconocida') {
-        $hostDetectado = @gethostbyaddr($ip);
-        if ($hostDetectado !== false && $hostDetectado !== '') {
-            $host = $hostDetectado;
-        }
+function obtener_ip_host_cliente() {
+    if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        return explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0];
     }
 
-    return $ip . ' / ' . $host;
-}
+    if (!empty($_SERVER['REMOTE_ADDR'])) {
+        return $_SERVER['REMOTE_ADDR'];
+    }
 
+    return 'No disponible';
+}
 function registrar_bitacora(PDO $pdo, string $tipo, string $detalle, ?string $nombreUsuario = null): void {
     $nombreUsuario = $nombreUsuario ?: current_user_name();
     $fechaHora = date('d/m/Y, H:i:s');
@@ -141,3 +138,5 @@ $estadoLabels = [
     'completada' => 'Completada',
     'cancelada' => 'Cancelada',
 ];
+
+
