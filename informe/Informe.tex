@@ -1,8 +1,8 @@
 \documentclass[12pt]{report}
-\def\TITULO{Calendario de Recordatorios}
-\def\subtitulo{Laboratorio Práctico N\textsuperscript{o}2}
+\def\TITULO{Informe Técnico Final}
+\def\subtitulo{Calendario de Recordatorios}
 \def\autora{Franco Garrido}
-\def\correoa{francosebastian.garrido@alumnos.ulagos.cl}
+\def\correoa{francogamer950@gmail.com}
 
 \def\asignatura{Taller de Ingeniería Informática}
 \def\campus{Campus Osorno}
@@ -21,9 +21,6 @@
 
 \tableofcontents
 \listoffigures
-\renewcommand{\listtablename}{Índice de tablas}\listoftables
-\renewcommand{\lstlistlistingname}{Índice de códigos}
-\lstlistoflistings
 
 \cleardoublepage
 \pagenumbering{arabic}
@@ -31,88 +28,127 @@
 
 \chapter{Introducción}
 
-El presente informe describe el desarrollo y despliegue de una aplicación web llamada \textbf{Calendario de Recordatorios}. El proyecto consiste en un sistema simple para registrar recordatorios con título, descripción, fecha y hora, permitiendo realizar operaciones básicas de creación, lectura, modificación y eliminación de datos.
+El informe técnico tiene como objetivo documentar el desarrollo y funcionamiento de la aplicación web \textbf{Calendario de Recordatorios}, un sistema enfocado en el manejo de recordatorios mediante acciones CRUD (crear, consultar, modificar y eliminar). La aplicación permite al usuario crear, consultar, modificar y eliminar registros de una forma ordenada a partir de una interfaz web.
 
-La aplicación fue implementada usando \textbf{PHP} para la lógica del sitio, \textbf{CSS} para el diseño visual, \textbf{MySQL} para la persistencia de información y \textbf{Docker Compose} para levantar los servicios necesarios de forma ordenada. El objetivo principal es demostrar el funcionamiento de una aplicación web dinámica conectada a una base de datos mediante contenedores.
+El proyecto alberga un sistema de autenticación que permite el inicio de sesión mediante usuario y contraseña así como registrar nuevos usuarios. Los datos están almacenados en una base de datos que asocia los recordatorios con el usuario correspondiente.
 
-\section{Estructura del proyecto}
+Asimismo, la aplicación tiene un menú principal que distingue entre las operaciones principales de la aplicación: crear, consultar, modificar, eliminar y cerrar sesión. Esta estructura permite el acceso directo de cada operación solicitada por el usuario.
 
-El proyecto se organiza separando la aplicación, la base de datos, la configuración de Docker y la documentación. Esta estructura permite mantener el código ordenado y facilita su ejecución en distintos entornos.
+Un elemento destacado que se ha incorporado al proyecto es la implementación de una bitácora de eventos, encargada de registrar las acciones que son llevadas a cabo por el propio usuario dentro de la aplicación. Esta bitácora permite guardar la siguiente información: fecha y hora, usuario, tipo de evento, detalle de la operacion y la IP o el host del cliente.
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.75\linewidth]{images/other/estructura_proyecto.png}
-    \caption{Estructura general del proyecto Calendario de Recordatorios}
-    \label{fig:estructura}
-\end{figure}
+\chapter{Desarrollo}
 
-\chapter{Configuración de Docker}
-
-\section{Archivo \texttt{docker-compose.yml}}
-
-El archivo \texttt{docker-compose.yml} define dos servicios principales: \texttt{app} y \texttt{db}. El servicio \texttt{app} construye la aplicación desde la carpeta \texttt{app}, expone el puerto \texttt{8080} y utiliza variables de entorno para conectarse a la base de datos. El servicio \texttt{db} utiliza la imagen \texttt{mysql:8.4}, crea la base de datos inicial y mantiene la información mediante un volumen llamado \texttt{calendario\_data}.
-
-\begin{itemize}
-    \item \textbf{Servicio \texttt{app}:} contiene PHP y Apache para ejecutar \texttt{index.php}.
-    \item \textbf{Servicio \texttt{db}:} contiene MySQL y almacena los datos de los recordatorios.
-    \item \textbf{Volumen:} permite conservar los datos aunque los contenedores se detengan.
-    \item \textbf{Red interna:} permite que la aplicación se conecte a MySQL usando el nombre del servicio \texttt{db}.
-\end{itemize}
-
-\section{Archivo \texttt{Dockerfile}}
-
-El \texttt{Dockerfile} se encuentra dentro de la carpeta \texttt{app}. Utiliza como base la imagen \texttt{php:8.3-apache}, instala las extensiones \texttt{pdo} y \texttt{pdo\_mysql}, copia los archivos de la aplicación al directorio de Apache y expone el puerto \texttt{80} dentro del contenedor.
-
-\chapter{Desarrollo y pruebas}
-
-\section{Construcción del proyecto}
-
-Construimos la imagen, este proceso prepara el contenedor de la aplicación web, instalando las extensiones necesarias para que PHP pueda conectarse con MySQL.
+\section{Deploy de la Aplicación}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\linewidth]{images/pruebas/docker_compose_build.png}
-    \caption{Construcción de la imagen de la aplicación}
-    \label{fig:build}
+    \includegraphics[width=1\linewidth]{images/screenshots/deploy_aplicacion.png}
+    \caption{Interfaz Menú Principal de la Aplicación}
+    \label{fig:docker-up}
 \end{figure}
 
-\section{Ejecución de los contenedores}
+Menú principal de la aplicación, aqui se pueden visualizar todas las tareas registradas en todos los estados, un filtro por estado, las tareas pendientes cercanas, unas tarjetas con la cantidad total de de tareas además de la cantidad de tareas por estados y por ultimo un menú para acceder a operaciones CRUD, junto al cierre de sesión.
 
-Luego de construir la imagen, se levantan los contenedores en segundo plano:
+\section{Interfaces de autenticación}
+
+\subsection{Inicio de sesión}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\linewidth]{images/pruebas/docker_compose_up.png}
-    \caption{Ejecución de Docker Compose}
-    \label{fig:up}
+    \includegraphics[width=0.7\linewidth]{images/screenshots/login.png}
+    \caption{Interfaz de inicio de sesión}
+    \label{fig:login}
 \end{figure}
 
-Comprobamos que ambos servicios están activos:
+La interfaz de inicio de sesión permite que un usuario registrado acceda al sistema mediante nombre de usuario y contraseña. La contraseña se valida desde PHP utilizando el hash almacenado en la base de datos.
+
+\subsection{Registro de usuario}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\linewidth]{images/pruebas/docker_compose_ps.png}
-    \caption{Verificación de contenedores activos}
-    \label{fig:ps}
+    \includegraphics[width=0.7\linewidth]{images/screenshots/registro_usuario.png}
+    \caption{Interfaz de registro de usuario}
+    \label{fig:registro}
 \end{figure}
 
-En esta prueba se verifica que la página cargue correctamente, que muestre el listado de recordatorios y que permita crear, modificar y borrar registros.
+La interfaz de registro permite crear un nuevo usuario dentro del sistema. Al guardar el usuario, la contraseña no se almacena en texto plano, sino que se guarda en la columna \texttt{contrasena} utilizando un hash generado por PHP.
+
+\section{Menú principal de operaciones CRUD}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\linewidth]{images/pruebas/calendario_app.png}
-    \caption{Listado de recordatorios en la aplicación web}
-    \label{fig:listado}
+    \includegraphics[width=0.3\linewidth]{images/screenshots/menu_principal.png}
+    \caption{Menú principal con opciones CRUD}
+    \label{fig:menu-principal}
 \end{figure}
+
+El menú principal concentra las opciones: \textbf{Crear}, \textbf{Consultar}, \textbf{Modificar}, \textbf{Eliminar} y \textbf{Cerrar sesión}. Desde este menú el usuario puede acceder a cada operación de manera separada.
+
+\section{Operaciones CRUD}
+
+\subsection{Crear registro}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{images/screenshots/crear_recordatorio.png}
+    \caption{Formulario para crear un recordatorio}
+    \label{fig:crear}
+\end{figure}
+
+Esta interfaz permite registrar un nuevo recordatorio indicando sus datos principales, como título, descripción, fecha y hora. Al guardar el formulario, el registro queda asociado al usuario que inició sesión.
+
+\subsection{Consultar registros}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{images/screenshots/consultar_recordatorios.png}
+    \caption{Consulta y listado de recordatorios}
+    \label{fig:consultar}
+\end{figure}
+
+La vista de consulta muestra los recordatorios registrados por el usuario. También permite revisar el estado de cada tarea y aplicar filtros para visualizar registros específicos.
+
+\subsection{Modificar registro}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{images/screenshots/modificar_recordatorio.png}
+    \caption{Selección y modificación de un recordatorio}
+    \label{fig:modificar}
+\end{figure}
+
+La operación de modificación permite seleccionar un recordatorio existente y actualizar sus datos.
+
+\subsection{Eliminar registro}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{images/screenshots/eliminar_recordatorio.png}
+    \caption{Eliminación de un recordatorio}
+    \label{fig:eliminar}
+\end{figure}
+
+La interfaz de eliminación permite borrar un recordatorio específico. Esta acción se registra en la bitácora para mantener trazabilidad sobre los cambios realizados dentro del sistema.
+
+\section{Bitácora}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{images/screenshots/base_datos_log.png}
+    \caption{Modelo de datos de usuarios, recordatorios y bitácora}
+    \label{fig:modelo-datos}
+\end{figure}
+
+La bitácora registra los eventos principales de la aplicación. Cada evento considera la fecha y hora, el nombre de usuario, el tipo de acción realizada, el detalle de la operación y la IP o host del cliente. Esto permite mantener un historial de uso del sistema y facilita la revisión de acciones realizadas por los usuarios.
 
 \chapter{Conclusión}
 
-En conclusión, el proyecto \textbf{Calendario de Recordatorios} cumple con el desarrollo de una aplicación web dinámica conectada a una base de datos. La solución permite registrar, visualizar, modificar y eliminar recordatorios de forma sencilla mediante una interfaz web.
+El desarrollo de la aplicación \textbf{Calendario de Recordatorios} permitió implementar un sistema web funcional para la administración de recordatorios mediante operaciones CRUD. La aplicación cumple con las funciones principales de crear, consultar, modificar y eliminar registros, entregando al usuario una forma ordenada de gestionar sus tareas.
 
-El uso de Docker permitió separar la aplicación PHP y la base de datos MySQL en contenedores distintos, facilitando la instalación, ejecución y comprobación del sistema. Además, Docker Compose simplificó el levantamiento del entorno completo, ya que ambos servicios se configuran desde un solo archivo.
+La incorporación del inicio de sesión y el registro de usuarios permite controlar el acceso al sistema, asegurando que cada usuario pueda trabajar con sus propios datos. Además, el uso de una base de datos permite almacenar de manera persistente tanto los usuarios como los recordatorios registrados.
 
-Finalmente, el proyecto permitió aplicar de manera práctica conceptos relacionados con desarrollo web, bases de datos, persistencia de datos, redes internas de contenedores y despliegue básico de aplicaciones mediante Docker.
+El menú principal facilita la navegación dentro de la aplicación, ya que separa cada operación en una opción específica. Esto permite que el usuario acceda directamente a la acción que desea realizar, manteniendo una estructura clara y fácil de utilizar.
 
-\input{Anexos}
+Finalmente, la bitácora de eventos permite registrar las acciones relevantes realizadas dentro del sistema, entregando trazabilidad sobre el uso de la aplicación.
 
 \end{document}

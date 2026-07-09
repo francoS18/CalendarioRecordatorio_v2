@@ -14,15 +14,23 @@ Aplicacion web simple para registrar recordatorios en un calendario basico.
 app/
   Dockerfile
   index.php
+  config.php
+  login.php
+  logout.php
+  logs.php
+  menu.php
+  registro.php
+  script.js
   styles.css
 db/
   init.sql
+  .env
 .env.example
 .gitignore
 docker-compose.yml
 README.md
 informe/
-  proyecto.tex
+  informe.tex
 ```
 
 ## Como iniciar el proyecto
